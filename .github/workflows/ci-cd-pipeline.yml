@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir build
           tar -czf build/project.tar.gz src tests requirements.txt
-        shell: bash
+        shell: powershell
 
       - name: Upload Artifact for UAT
         uses: actions/upload-artifact@v4
@@ -65,14 +65,14 @@ jobs:
           New-Item -ItemType Directory -Force -Path $deployPath
           tar -xzf project.tar.gz -C $deployPath
           Write-Host "✅ Project deployed successfully to $deployPath"
-        shell: pwsh
+        shell: powershell
 
       - name: Install Dependencies on UAT
         run: |
           cd C:\Users\joseph.tj\Desktop\CICD test
           python -m pip install -r ..\requirements.txt
           Write-Host "✅ Dependencies installed successfully"
-        shell: pwsh
+        shell: powershell
 
   # ----------------- PRODUCTION STAGE -----------------
   # deploy_prod:
