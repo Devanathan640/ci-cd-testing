@@ -1,0 +1,99 @@
+name: CI/CD Automation Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # ----------------- BUILD & TEST STAGE -----------------
+  build_and_test:
+    name: Build & Test in Dev
+    runs-on: [self-hosted, dev]
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run Unit Tests
+        run: pytest -v
+
+      - name: Package Application
+        run: |
+          mkdir build
+          tar -czf build/project.tar.gz src tests requirements.txt
+        shell: bash
+
+      - name: Upload Artifact for UAT
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-package
+          path: build/project.tar.gz
+
+  # ----------------- UAT STAGE -----------------
+  deploy_uat:
+    name: Deploy & Test in UAT
+    runs-on: [self-hosted, uat]
+    needs: build_and_test
+
+    steps:
+      - name: Download Artifact from Dev
+        uses: actions/download-artifact@v4
+        with:
+          name: project-package
+          path: .
+
+      - name: Extract and Deploy to UAT Directory
+        run: |
+          $deployPath = "C:\Users\joseph.tj\Desktop\CICD test"
+          if (Test-Path $deployPath) {
+              Remove-Item -Recurse -Force $deployPath
+          }
+          New-Item -ItemType Directory -Force -Path $deployPath
+          tar -xzf project.tar.gz -C $deployPath
+          Write-Host "✅ Project deployed successfully to $deployPath"
+        shell: pwsh
+
+      - name: Install Dependencies on UAT
+        run: |
+          cd C:\Users\joseph.tj\Desktop\CICD test
+          python -m pip install -r ..\requirements.txt
+          Write-Host "✅ Dependencies installed successfully"
+        shell: pwsh
+
+  # ----------------- PRODUCTION STAGE -----------------
+  # deploy_prod:
+  #   name: Deploy to Production
+  #   runs-on: [self-hosted, prod]
+  #   needs: deploy_uat
+
+  #   steps:
+  #     - name: Download Artifact from UAT
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: project-package
+  #         path: .
+
+  #     - name: Extract Package
+  #       run: |
+  #         mkdir app
+  #         tar -xzf project.tar.gz -C app
+  #       shell: bash
+
+  #     - name: Install Dependencies
+  #       run: |
+  #         cd app
+  #         python -m pip install -r requirements.txt
+  #         echo "🚀 Deployed to Production Successfully"
