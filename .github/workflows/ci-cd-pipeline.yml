@@ -69,7 +69,7 @@ jobs:
 
       - name: Install Dependencies on UAT
         run: |
-          cd C:\Users\joseph.tj\Desktop\CICD test
+          cd "C:\Users\joseph.tj\Desktop\CICD test"
           python -m pip install -r ..\requirements.txt
           Write-Host "✅ Dependencies installed successfully"
         shell: powershell
